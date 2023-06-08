@@ -77,9 +77,12 @@ if [ "$param" = "show" ]; then
 	active_project=$(get_active_project)
 
 	if [ -n "$active_project" ]; then
-		if yq e ".frontend.\"$active_project\"" "$properties_file" >/dev/null 2>&1; then
+		# Check if the active project is a frontend project
+		property_exists=$(yq eval "select(di == 0).frontend | has(\"$active_project\")" "$properties_file")
+		if [ "$property_exists" = "true" ]; then
 			# Frontend project
 			api_dependencies=$(get_api_dependencies)
+			echo "Type: Frontend"
 			echo "Active Environment: $active_env"
 			echo "Active Project: $active_project"
 
@@ -88,20 +91,25 @@ if [ "$param" = "show" ]; then
 			else
 				echo "No API Dependencies"
 			fi
-		elif yq e ".backend.\"$active_project\"" "$properties_file" >/dev/null 2>&1; then
-			# Backend project
-			ip_address=$(get_ip_address)
-			echo "Active Environment: $active_env"
-			echo "Active Project: $active_project"
-
-			if [ -n "$ip_address" ]; then
-				echo "IP Address: $ip_address"
-			else
-				echo "No IP Address"
-			fi
 		else
-			echo "Error: The project '$active_project' does not exist in the properties file."
-			exit 1
+			# Check if the active project is a backend project
+			property_exists=$(yq eval "select(di == 0).backend | has(\"$active_project\")" "$properties_file")
+			if [ "$property_exists" = "true" ]; then
+				# Backend project
+				ip_address=$(get_ip_address)
+				echo "Type: Backend"
+				echo "Active Environment: $active_env"
+				echo "Active Project: $active_project"
+
+				if [ -n "$ip_address" ]; then
+					echo "IP Address: $ip_address"
+				else
+					echo "No IP Address"
+				fi
+			else
+				echo "Error: The project '$active_project' does not exist in the properties file."
+				exit 1
+			fi
 		fi
 	else
 		echo "Error: No current project specified."
@@ -127,6 +135,31 @@ elif [[ $param =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+(:[0-9]+)?$ || $param =~ ^(loca
 		echo "Successfully updated the IP address for $active_project to $param."
 	else
 		echo "Error: No current project specified or the current project is not a backend project."
+		exit 1
+	fi
+
+# Check if the provided value is "."
+elif [ "$param" = "." ]; then
+	if [ -f "package.json" ]; then
+		project_name=$(sed -n '2p' package.json | awk -F '"' '{print $4}')
+		if yq e '.projects."all-project-names"[]' "$properties_file" | grep -q "^$project_name$"; then
+			update_current_project "$project_name"
+			echo "Successfully updated the current project to $project_name."
+		else
+			echo "Error: The project name '$project_name' does not exist in the 'all-project-names' list in savvato.yaml."
+			exit 1
+		fi
+	elif [ -f "pom.xml" ]; then
+		project_name=$(grep -oP '<artifactId>\K[^<]*' pom.xml | sed -n '2p')
+		if yq e '.projects."all-project-names"[]' "$properties_file" | grep -q "^$project_name$"; then
+			update_current_project "$project_name"
+			echo "Successfully updated the current project to $project_name."
+		else
+			echo "Error: The project name '$project_name' does not exist in the 'all-project-names' list in savvato.yaml."
+			exit 1
+		fi
+	else
+		echo "Error: No package.json or pom.xml file found."
 		exit 1
 	fi
 
