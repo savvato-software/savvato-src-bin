@@ -5,6 +5,8 @@ git checkout develop
 
 # Find all branches starting with 'feature/'
 for branch in $(git branch --list "feature/*"); do
+    echo "--------------------------"
+    echo
   # Switch to the feature branch
   git checkout $branch
 
@@ -13,8 +15,7 @@ for branch in $(git branch --list "feature/*"); do
 
   # Push the updated feature branch to the remote repository
   git push origin $branch
-
-  # Switch back to the develop branch
-  git checkout develop
 done
 
+# Switch back to the develop branch
+git checkout develop
