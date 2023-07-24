@@ -67,7 +67,7 @@ for ((i = 0; i < ${#frontend_dependencies[@]}; i++)); do
     if [[ $ip_address == *":"* ]]; then
         port=${ip_address#*:}
     else
-        port=8080  # Set default port to 8080 if no colon in ip_address
+        port=8443  # Set default port to 8443 if no colon in ip_address
     fi
     sed -i "s|$placeholder_port|$port|" "$temp_environment_file"
 
