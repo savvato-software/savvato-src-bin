@@ -55,6 +55,9 @@ if [[ $? -ne 0 ]]; then
 fi
 echo "Updated the Ansible inventory file with the IP $ip_address"
 
+sed -i "s/User=.*/User=$ec2_user/" "$project_directory/ansible/systemd.service"
+echo "Updated the systemd service file."
+
 # Run the Ansible playbook
 echo "Running Ansible.........."
 ansible-playbook -i ./ansible/inventory.yaml -u "$ec2_user" --private-key "$ec2_key" ./ansible/playbook.yaml
