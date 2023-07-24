@@ -3,26 +3,30 @@
 # Read YAML file
 config_file="$HOME/src/savvato.yaml"
 
-# Get current environment
-current_env=$(yq eval '.environment."current-environment"' "$config_file")
-echo "Current environment: $current_env"
+# Get current environment from the YAML file
+current_environment=$(yq e '.environment."current-environment"' "$config_file")
+echo "Current environment: $current_environment"
 
-# Get current project
-current_project=$(yq eval '.projects."current-project"' "$config_file")
+# Exit if the current environment is 'dev'
+if [[ $current_environment == "dev" ]]; then
+    echo "Current environment is 'dev'. Exiting..."
+    exit 0
+fi
+
+# Get current project from the YAML file
+current_project=$(yq e '.projects."current-project"' "$config_file")
 echo "Current project: $current_project"
 
-# Get IP address based on environment and project
-ip_address=$(yq eval ".$current_project.$current_env.backend-ip" "$config_file")
+# Get IP address from the YAML file based on the current environment and current project
+ip_address=$(yq e ".backend.\"$current_project\".\"$current_environment\".host" "$config_file")
 echo "IP address: $ip_address"
 
 if [[ -n $ip_address ]]; then
-        # Run SSH command
-            ssh_command="ssh -i ~/Downloads/ec2keypair1.pem ubuntu@$ip_address"
-                echo "Running SSH command: $ssh_command"
-                    eval "$ssh_command"
-                else
-                        echo "No IP address found for project: $current_project"
+    # Run SSH command
+    ssh_command="ssh -i $(yq e '.projects.ec2_key' "$config_file") $(yq e '.projects.ec2_user' "$config_file")@$ip_address"
+    echo "Running SSH command: $ssh_command"
+    eval "$ssh_command"
+else
+    echo "No IP address found for project: $current_project"
 fi
-
-
 
