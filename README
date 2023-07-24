@@ -1,0 +1,49 @@
+
+savv.sh - this script is the main script. It manages the ~/src/savvato.yaml file.
+	options
+		. (single period) -
+			sets the current project to the project defined in the current directory
+        run -
+            runs the current frontend project (if set) and all the backend dependencies as described in savvato.yaml
+		show -
+			returns a list of info about the current environment, current project, 
+			whether the current project is frontend or backend,
+			and the IP addresses being used.
+		(ip address) -
+			if a backend project is current, it will set the IP address for
+			that project to the given IP.
+		(project name) -
+			sets the current project to the given project name
+		dev | staging | prod -
+			sets the current environment to dev, staging or prod
+			
+
+
+
+run-ansible.sh - this script is for backend. It updates the inventory.yaml to refer the IP of the current
+		project. Then it runs the ansible playbook for that project. This updates the cloud EC2
+		instance with the most recently built Sprint Boot JAR.
+		
+savv-deploy.sh - This script does a complete clean build and deploy of the current project.
+
+
+DEPRECATED
+--
+refresh-env-files.sh - this script is for frontend. It updates the environment.ts file with the IP addresses
+		of the backend services this project depends on. It then does a clean build, and copies 
+		its files to an S3 bucket. The frontend is then available from that bucket.
+
+        No longer necessry because we use domain names for the backend dependencies, rather than potentially changing IP addresses. When the IP addresses do change, we update the domain name.
+		
+----
+
+There is a clean base instance of EC2, an AWS Launch Template, called savvato-backend-api at: https://us-east-1.console.aws.amazon.com/ec2/home?region=us-east-1#LaunchTemplates:
+
+Start a copy of that up, and run the project-local ansible against it. This creates your running backend server instance. You can run savv-deploy.sh to do this.
+
+But to create the clean base instance, set the ip address in inventory-generic.yaml
+
+ansible-playbook -i inventory-generic.yaml -u ubuntu --private-key /home/jjames/Downloads/ec2keypair1.pem playbook-generic.yaml
+
+
+TODO, write a script to do that.
