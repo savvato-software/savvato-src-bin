@@ -18,21 +18,30 @@ if [ "$property_exists_frontend" != "null" ]; then
     # Current project is under "frontend"
 
     # Change to the directory of the current project
-    project_directory="/home/jjames/src/frontend/$current_project"
+    project_directory="/home/jjames/src/$current_project"
     cd "$project_directory"
 
     echo "Changed to directory: $project_directory"
 
-    # Run refresh-env-files.sh script
-    refresh_script_path="/home/jjames/src/bin/refresh-env-files.sh"
-    if [ -f "$refresh_script_path" ]; then
-        echo "Running refresh-env-files.sh script..."
-        bash "$refresh_script_path"
-        echo "Refresh script completed successfully."
-    else
-        echo "refresh-env-files.sh script not found."
-        exit 1
-    fi
+    # Update the index.html with current date and time
+    echo "Timestamping the index.html...."
+    timestamp=$(date +"%Y-%m-%d %H:%M:%S")
+
+    # Path to the index.html file
+    index_file="./src/index.html"
+    
+    git restore "$index_file"
+
+    # Read the contents of the index.html file
+    html=$(cat "$index_file")
+
+    # Update the index.html file by inserting the comment after the <title> tag
+    updated_html=$(echo "$html" | sed "s/Build<\/title>/Build $timestamp<\/title>/")
+
+    # Write the updated HTML back to the index.html file
+    echo "$updated_html" > "$index_file"
+    
+    cp ./src/app/_environments/environment.$current_environment.ts ./src/app/_environments/environment.ts
 
     # Remove the www directory
     echo "Removing www directory..."
@@ -97,12 +106,12 @@ elif [ "$property_exists_backend" != "null" ]; then
 
     # Remove the version info from the JAR file name
     jar_file_name=$(basename "$jar_file")
-    jar_file_name_without_version="${jar_file_name%-*}.jar"
+    jar_file_name_without_version="${jar_file_name%-[0-9]*}.jar"
 
     # Copy the JAR file to S3 bucket
-    echo "Copying JAR file to S3 bucket: $s3_bucket_name..."
+    echo "Copying JAR file [$jar_file_name_without_version] to S3 bucket: $s3_bucket_name..."
     aws s3 cp "$jar_file" "s3://$s3_bucket_name/$jar_file_name_without_version"
-    echo "JAR file copied to S3 bucket: $s3_bucket_name"
+    echo "JAR file [$jar_file_name_without_version] copied to S3 bucket: $s3_bucket_name"
 
 
     # Call run_ansible.sh script
