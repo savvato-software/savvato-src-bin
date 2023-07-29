@@ -47,3 +47,10 @@ ansible-playbook -i inventory-generic.yaml -u ubuntu --private-key /home/jjames/
 
 
 TODO, write a script to do that.
+
+-------
+STAGING
+
+./bin/environmental has scripts to bring staging up and down.
+
+Write more about that later.
