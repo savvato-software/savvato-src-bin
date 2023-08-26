@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 import os
 import subprocess
 import yaml
@@ -7,7 +9,16 @@ def read_properties_file(file_path):
         properties = yaml.safe_load(file)
     return properties
 
-def start_staging_instances(dependencies):
+def update_properties_file(file_path, dependency, ip_address):
+    with open(file_path, 'r') as file:
+        properties = yaml.safe_load(file)
+
+    properties['backend'][dependency]['staging']['host'] = ip_address
+
+    with open(file_path, 'w') as file:
+        yaml.dump(properties, file)
+
+def start_staging_instances(dependencies, properties_file_path):
     for dependency in dependencies:
         if dependency in properties['frontend'][current_project]['api-dependencies']:
             instance_id = properties['backend'][dependency]['staging']['aws']['instance-id']
@@ -20,6 +31,9 @@ def start_staging_instances(dependencies):
             # Prepare to update DNS
             name = dependency.replace('savvato-', '') + '.staging'
             subprocess.run(['node', './environmental/nearlyfreespeech/nfsn.js', name, ip_address], check=True)
+
+            # Update backend staging host property in properties file
+            update_properties_file(properties_file_path, dependency, ip_address)
 
 if __name__ == '__main__':
     file_path = os.path.expanduser('~/src/savvato.yaml')
@@ -39,5 +53,5 @@ if __name__ == '__main__':
         exit(1)
 
     dependencies = properties['frontend'][current_project]['api-dependencies']
-    start_staging_instances(dependencies)
+    start_staging_instances(dependencies, file_path)
 
