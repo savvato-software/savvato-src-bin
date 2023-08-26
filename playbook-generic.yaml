@@ -1,0 +1,78 @@
+---
+- hosts: all # THIS SCRIPT is used in creating the base template. A project specific playbook creates the application specific microservice
+  become: true
+  vars:
+    ansible_python_interpreter: /usr/bin/python3  # Specify the path to Python 3 interpreter
+  tasks:
+    - name: Update package cache
+      apt:
+        update_cache: yes
+
+    - name: Upgrade packages
+      apt:
+        upgrade: yes
+        autoremove: yes
+        autoclean: yes
+
+    - name: Install APT apps 
+      apt:
+        name: 
+          - net-tools
+          - tree
+        state: present
+
+    - name: Retrieve dotvimrc file
+      get_url:
+        url: http://www.haxwell.org/dotvimrc
+        dest: /tmp/dotvimrc
+
+    - name: Copy dotvimrc to /home/ubuntu/.vimrc
+      copy:
+        src: /tmp/dotvimrc
+        dest: /home/ubuntu/.vimrc
+        remote_src: yes
+
+    - name: Copy dotvimrc to /root/.vimrc
+      become: true
+      copy:
+        src: /tmp/dotvimrc
+        dest: /root/.vimrc
+        remote_src: yes
+
+    - name: Install Java 19
+      apt:
+        name: openjdk-19-jdk
+        state: present
+
+    - name: Install Python 3
+      apt:
+        name: 
+        - python3
+        - python3-pip
+        - python3-botocore
+        - python3-boto3
+        state: present
+
+    - name: Install MySQL
+      apt:
+        name: mysql-server
+        state: present
+      vars:
+        mysql_user: myuser  # Set the desired username for the new MySQL user
+        mysql_password: mypassword  # Set the desired password for the new MySQL user
+
+    - name: Install pymysql
+      pip:
+        name: pymysql
+        state: present
+        executable: pip3
+
+- name: Reboot the machine
+  hosts: all
+  become: true
+  tasks:
+    - name: Reboot the machine
+      reboot:
+        msg: "Rebooting the machine"
+        pre_reboot_delay: 10
+
