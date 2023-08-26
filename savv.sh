@@ -90,6 +90,25 @@ function start_api_dependencies() {
     fi
 }
 
+# Function to copy the environment file for the current environment
+function copy_environment_file() {
+    local current_env=$(get_active_environment)
+    local environment_file="./src/app/_environments/environment.$current_env.ts"
+    local target_file="./src/app/_environments/environment.ts"
+    
+    cd "$home_dir/src/$active_project"
+
+    if [ -f "$environment_file" ]; then
+        cp "$environment_file" "$target_file"
+        echo "Copied environment file: $environment_file => $target_file"
+    else
+        echo "Error: Environment file not found for $current_env ($environment_file)"
+        exit 1
+    fi
+    
+    cd -
+}
+
 # Get the environment from the command line argument
 if [ $# -lt 1 ]; then
 	echo "Please provide an environment option, project name, IP address, or 'show' command."
@@ -108,6 +127,7 @@ if [ "$param" = "run" ]; then
         if [ "$property_exists" = "true" ]; then
             # Frontend project
             start_api_dependencies
+            copy_environment_file # Call the function to copy the environment file
             echo "Starting frontend project: $active_project"
             cd "$home_dir/src/$active_project"
             ionic serve
