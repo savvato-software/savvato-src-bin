@@ -9,6 +9,7 @@ savv.sh - this script is the main script. It manages the ~/src/savvato.yaml file
 			returns a list of info about the current environment, current project, 
 			whether the current project is frontend or backend,
 			and the IP addresses being used.
+        i-092537182637236 - Set the instance ID for the desired EC2 instance.
 		(ip address) -
 			if a backend project is current, it will set the IP address for
 			that project to the given IP.
@@ -16,6 +17,21 @@ savv.sh - this script is the main script. It manages the ~/src/savvato.yaml file
 			sets the current project to the given project name
 		dev | staging | prod -
 			sets the current environment to dev, staging or prod
+
+
+savv-deploy.sh - one command to send the frontend or backend to the appropriate environment
+
+
+./environmental/bringItUp.sh
+    bring up the staging environment for your frontend app
+
+
+./environment/shutItDown.sh
+    shut down the staging environment for your frontend app
+
+
+./ec2-ssh
+    ssh into the current backend project's ec2 instance
 			
 
 
