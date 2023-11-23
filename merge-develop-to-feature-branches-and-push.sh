@@ -10,6 +10,8 @@ for branch in $(git branch --list "feature/*"); do
   # Switch to the feature branch
   git checkout $branch
 
+  git pull
+
   # Merge the develop branch into the feature branch
   git merge develop
 
