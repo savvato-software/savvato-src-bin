@@ -109,9 +109,23 @@ function copy_environment_file() {
     cd -
 }
 
+# Function to check if the provided value is a valid AWS instance ID
+function is_valid_instance_id() {
+    local value=$1
+    [[ $value =~ ^i-[0-9a-f]{17}$ ]]
+}
+
+# Function to update AWS instance ID in the properties file
+function update_aws_instance_id() {
+    local instance_id=$1
+    local current_env=$(get_active_environment)
+    local current_project=$(get_active_project)
+    yq e ".backend.\"$current_project\".$current_env.aws.\"instance-id\" = \"$instance_id\"" -i "$properties_file"
+}
+
 # Get the environment from the command line argument
 if [ $# -lt 1 ]; then
-	echo "Please provide an environment option, project name, IP address, or 'show' command."
+	echo "Please provide an environment option, project name, IP address, EC2 instance ID or 'show' command."
 	exit 1
 fi
 
@@ -197,17 +211,44 @@ elif yq e '.projects."all-project-names"[]' "$properties_file" | grep -q "^$para
 	update_current_project "$param"
 	echo "Successfully updated the current project to $param."
 
-	# Check if the provided value is an IP address (only for backend projects)
+# Check if the provided value is an IP address (only for backend projects)
 elif [[ $param =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+(:[0-9]+)?$ || $param =~ ^(localhost|127\.0\.0\.1):[0-9]+$ ]]; then
-	active_project=$(get_active_project)
+    active_project=$(get_active_project)
 
-	if yq e ".backend.\"$active_project\"" "$properties_file" >/dev/null 2>&1; then
-		update_ip_address "$param"
-		echo "Successfully updated the IP address for $active_project to $param."
-	else
-		echo "Error: No current project specified or the current project is not a backend project."
-		exit 1
-	fi
+    # Check if the active project is a frontend project
+    is_frontend_project=$(yq e ".frontend | has(\"$active_project\")" "$properties_file")
+    if [ "$is_frontend_project" = "true" ]; then
+        echo "$active_project is a frontend project. Cannot set an IP address for it."
+        exit 0
+    fi
+
+    # Check if the active project is a backend project
+    is_backend_project=$(yq e ".backend | has(\"$active_project\")" "$properties_file")
+    if [ "$is_backend_project" = "true" ]; then
+        update_ip_address "$param"
+        echo "Successfully updated the IP address for $active_project to $param."
+    else
+        echo "Error: No current project specified or the current project is not a backend project."
+        exit 1
+    fi
+    
+# Check if the provided value is a valid AWS instance ID
+elif is_valid_instance_id "$param"; then
+    current_env=$(get_active_environment)
+    current_project=$(get_active_project)
+
+    # Check if the current project is a backend project
+    is_backend_project=$(yq e ".backend | has(\"$current_project\")" "$properties_file")
+
+    # Ensure current environment is not 'dev' and the project is a backend project
+    if [ "$current_env" != "dev" ] && [ "$is_backend_project" = "true" ]; then
+
+        update_aws_instance_id "$param"
+        echo "Successfully updated the AWS instance ID for $current_project in environment $current_env to $param."
+    else
+        echo "Error: Either the environment is 'dev' or the current project is not a backend project."
+        exit 1
+    fi
 
 # Check if the provided value is "."
 elif [ "$param" = "." ]; then
@@ -256,6 +297,7 @@ elif [ "$param" = "run" ]; then
     exit 0
 # Invalid value provided
 else
-	echo "Invalid argument. Please provide an environment option, project name, IP address, or 'show' command."
-	exit 1
+    echo "Invalid argument. Please provide an environment option, project name, IP address, AWS instance ID, or 'show' command."
+    exit 1
 fi
+
