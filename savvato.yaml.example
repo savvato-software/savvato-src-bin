@@ -1,0 +1,65 @@
+backend:
+  savvato-convo-app-backend-api:
+    dev:
+      host: localhost:8080
+    staging:
+      aws:
+        instance-id: i-0f69e7ea82d425615
+      host: 54.196.179.79
+  savvato-dmpj-backend-api:
+    dev:
+      host: localhost:8080
+    staging:
+      aws:
+        instance-id: i-0b96bbc3afeec9d7d
+      host: 35.171.157.172
+  savvato-skills-matrix-api:
+    dev:
+      host: localhost:8081
+    staging:
+      aws:
+        instance-id: i-040c515ca4e39af7d
+      host: 107.23.39.127
+environment:
+  current-environment: staging
+frontend:
+  savvato-convo-app-frontend-app:
+    api-dependencies:
+      - savvato-convo-app-backend-api
+    prod:
+      s3:
+        bucket-name: null
+    staging:
+      s3:
+        bucket-name: savvato-convo-app-frontend-app
+  savvato-dmpj-frontend-app:
+    api-dependencies:
+      - savvato-dmpj-backend-api
+      - savvato-skills-matrix-api
+    prod:
+      s3:
+        bucket-name: null
+    staging:
+      s3:
+        bucket-name: savvato-dmpj-frontend
+  savvato-skills-matrix-editor:
+    api-dependencies:
+      - savvato-skills-matrix-api
+    prod:
+      s3:
+        bucket-name: null
+    staging:
+      s3:
+        bucket-name: savvato-skills-matrix-editor
+projects:
+  all-project-names:
+    - savvato-dmpj-backend-api
+    - savvato-dmpj-frontend-app
+    - savvato-skills-matrix-api
+    - savvato-skills-matrix-editor
+    - savvato-convo-app-backend-api
+    - savvato-convo-app-frontend-app
+  current-project: savvato-convo-app-frontend-app
+  ec2_key: /home/jjames/Downloads/ec2keypair1.pem
+  ec2_user: ubuntu
+  public-key-path: /home/jjames/.ssh/id_rsa_201806300723.pub
