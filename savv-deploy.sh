@@ -1,5 +1,7 @@
 #!/bin/bash
 
+skip_backend_s3_deployment=false
+
 # Read the properties file
 properties_file="/home/jjames/src/savvato.yaml"
 current_project=$(grep "current-project:" "$properties_file" | awk '{print $2}')
@@ -74,45 +76,54 @@ if [ "$property_exists_frontend" != "null" ]; then
 elif [ "$property_exists_backend" != "null" ]; then
     # Current project is a backend project
 
-    # Change to the directory of the current project
-    project_directory="/home/jjames/src/$current_project"
-    cd "$project_directory"
-
-    echo "Changed to directory: $project_directory"
-
-    # Remove the target directory
-    echo "Removing target directory..."
-    rm -rf ./target
-    echo "Target directory removed successfully."
-
-    # Run "mvn clean package"
-    echo "Running 'mvn clean package'..."
-    mvn clean package
-    echo "'mvn clean package' completed successfully."
-
-    # Find the JAR file in the target directory
-    jar_file=$(find "$project_directory/target" -name "$current_project*.jar" -type f)
-
-    # Check if the JAR file exists
-    if [ ! -f "$jar_file" ]; then
-        echo "JAR file not found in the target directory."
-        exit 1
+    # Check for command line argument
+    if [ "$1" == "--skip-backend-s3" ]; then
+        skip_backend_s3_deployment=true
+        echo "Skipping backend S3 deployment as per command line argument."
+    elif [ "$1" != "--skip-backend-s3" ]; then
+        echo "Doing complete build and deploy to S3. Use --skip-backend-s3 to skip this step."
     fi
 
-    echo "Deploying JAR file: $jar_file"
+	if [ "$skip_backend_s3_deployment" = false ]; then
+	    # Change to the directory of the current project
+	    project_directory="/home/jjames/src/$current_project"
+	    cd "$project_directory"
 
-    # Get the S3 bucket name for builds
-    s3_bucket_name="savvato-builds-bucket"
+	    echo "Changed to directory: $project_directory"
 
-    # Remove the version info from the JAR file name
-    jar_file_name=$(basename "$jar_file")
-    jar_file_name_without_version="${jar_file_name%-[0-9]*}.jar"
+	    # Remove the target directory
+	    echo "Removing target directory..."
+	    rm -rf ./target
+	    echo "Target directory removed successfully."
 
-    # Copy the JAR file to S3 bucket
-    echo "Copying JAR file [$jar_file_name_without_version] to S3 bucket: $s3_bucket_name..."
-    aws s3 cp "$jar_file" "s3://$s3_bucket_name/$jar_file_name_without_version"
-    echo "JAR file [$jar_file_name_without_version] copied to S3 bucket: $s3_bucket_name"
+	    # Run "mvn clean package"
+	    echo "Running 'mvn clean package'..."
+	    mvn clean package
+	    echo "'mvn clean package' completed successfully."
 
+	    # Find the JAR file in the target directory
+	    jar_file=$(find "$project_directory/target" -name "$current_project*.jar" -type f)
+
+	    # Check if the JAR file exists
+	    if [ ! -f "$jar_file" ]; then
+		echo "JAR file not found in the target directory."
+		exit 1
+	    fi
+
+	    echo "Deploying JAR file: $jar_file"
+
+	    # Get the S3 bucket name for builds
+	    s3_bucket_name="savvato-builds-bucket"
+
+	    # Remove the version info from the JAR file name
+	    jar_file_name=$(basename "$jar_file")
+	    jar_file_name_without_version="${jar_file_name%-[0-9]*}.jar"
+
+	    # Copy the JAR file to S3 bucket
+	    echo "Copying JAR file [$jar_file_name_without_version] to S3 bucket: $s3_bucket_name..."
+	    aws s3 cp "$jar_file" "s3://$s3_bucket_name/$jar_file_name_without_version"
+	    echo "JAR file [$jar_file_name_without_version] copied to S3 bucket: $s3_bucket_name"
+    	fi
 
     # Call run_ansible.sh script
     run_ansible_script_path="/home/jjames/src/bin/run-ansible.sh"
