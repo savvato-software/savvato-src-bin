@@ -1,0 +1,13 @@
+When you are first getting the commandline scripts running, you will need to add these functions to ~/.bashrc
+
+function fe() {
+    local path=$($HOME/src/bin/commandline/fe.sh)
+    cd "$path" || return
+}
+
+function be() {
+    local path=$($HOME/src/bin/commandline/be.sh)
+    cd "$path" || return
+}
+
+
