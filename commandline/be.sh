@@ -7,9 +7,9 @@ savvato_yaml="$HOME/src/savvato.yaml"
 current_project=$(yq e '.projects.current-project' $savvato_yaml)
 
 # Check if the project is listed under frontend
-if yq e ".frontend | has(\"$current_project\")" $savvato_yaml > /dev/null; then
+if [ "$(yq e ".frontend | has(\"$current_project\")" "$savvato_yaml")" = "true" ]; then
     project_type="frontend"
-elif yq e ".backend | has(\"$current_project\")" $savvato_yaml > /dev/null; then
+elif [ "$(yq e ".backend | has(\"$current_project\")" "$savvato_yaml")" = "true" ]; then
     project_type="backend"
 else
     echo "Current project is neither frontend nor backend."
