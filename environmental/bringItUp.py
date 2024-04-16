@@ -37,6 +37,9 @@ def start_staging_instances(dependencies, properties_file_path, nfsn_script_dire
             update_properties_file(properties_file_path, dependency, ip_address)
 
 if __name__ == '__main__':
+    print('As of April 16 2024, I think you should use the AWS console to do this. It sets DNS IP addresses, etc. Can\'t really think of a reason to use this script any more. If you need to, future self, just delete this comment and exit, be sure the savvato.yaml has the instance id, and you should be good. If you don\'t need to future self, maybe delete this (and the shutItDown) script ??')
+    exit(1)
+
     script_directory = os.path.dirname(os.path.abspath(__file__))
 
     file_path = os.path.expanduser('~/src/savvato.yaml')
