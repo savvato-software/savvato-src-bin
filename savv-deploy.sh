@@ -77,7 +77,7 @@ elif [ "$property_exists_backend" != "null" ]; then
     # Current project is a backend project
 
     # Check for command line argument
-    if [ "$1" == "--skip-backend-s3" ]; then
+    if [ "$1" == "--skips3" ]; then
         skip_backend_s3_deployment=true
         echo "Skipping backend S3 deployment as per command line argument."
     elif [ "$1" != "--skip-backend-s3" ]; then
