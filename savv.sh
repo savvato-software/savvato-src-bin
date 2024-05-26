@@ -274,27 +274,6 @@ elif [ "$param" = "." ]; then
 		echo "Error: No package.json or pom.xml file found."
 		exit 1
 	fi
-elif [ "$param" = "run" ]; then
-    active_project=$(get_active_project)
-
-    if [ -n "$active_project" ]; then
-        # Check if the active project is a frontend project
-        property_exists=$(yq eval "select(di == 0).frontend | has(\"$active_project\")" "$properties_file")
-        if [ "$property_exists" = "true" ]; then
-            # Frontend project
-            start_api_dependencies
-            echo "Starting frontend project: $active_project"
-            cd "$home_dir/src/$active_project"
-            ionic serve
-        else
-            echo "Error: The project '$active_project' does not exist in the properties file or is not a frontend project."
-            exit 1
-        fi
-    else
-        echo "Error: No current project specified."
-        exit 1
-    fi
-    exit 0
 # Invalid value provided
 else
     echo "Invalid argument. Please provide an environment option, project name, IP address, AWS instance ID, or 'show' command."
