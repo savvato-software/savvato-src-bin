@@ -4,6 +4,7 @@
   vars:
     ansible_python_interpreter: /usr/bin/python3  # Specify the path to Python 3 interpreter
   tasks:
+
     - name: Update package cache
       apt:
         update_cache: yes
@@ -20,6 +21,11 @@
           - net-tools
           - tree
         state: present
+        
+    - name: Include iptables rules
+      include_tasks: ~/src/devops/ansible/includes/iptables-rules.yaml
+      
+      # TODO: Remove the port 80 setting in iptables-rules, if it is needed the app specific script should add it
 
     - name: Retrieve dotvimrc file
       get_url:
@@ -31,6 +37,12 @@
         src: /tmp/dotvimrc
         dest: /home/ubuntu/.vimrc
         remote_src: yes
+
+    - name: Change ownership of /home/ubuntu/.vimrc to ubuntu user
+      ansible.builtin.file:
+        path: /home/ubuntu/.vimrc
+        owner: ubuntu
+        group: ubuntu
 
     - name: Copy dotvimrc to /root/.vimrc
       become: true
