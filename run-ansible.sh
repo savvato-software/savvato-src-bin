@@ -2,6 +2,7 @@
 
 # Read YAML file
 config_file="$HOME/src/savvato.yaml"
+keys_file="$HOME/src/keys.yaml"
 
 # Get the current environment from the YAML file
 current_environment=$(yq e '.environment."current-environment"' "$config_file")
@@ -20,7 +21,6 @@ echo "Current project: $current_project"
 # Get the EC2 variables from the YAML file
 ec2_user=$(yq e '.projects.ec2_user' "$config_file")
 ec2_key=$(yq e '.projects.ec2_key' "$config_file")
-
 
 # Get the host (IP address or domain name) from the YAML file based on the current environment and current project
 host=$(yq e ".backend.$current_project.$current_environment.host" "$config_file")
@@ -48,7 +48,6 @@ if [[ ! $ip_address =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     exit 1
 fi
 
-
 # Change to the project directory
 project_directory="$HOME/src/$current_project"
 cd "$project_directory" || exit 1
@@ -65,6 +64,19 @@ echo "Updated the Ansible inventory file with the IP $ip_address"
 
 sed -i "s/User=.*/User=$ec2_user/" "$project_directory/ansible/$current_environment/systemd.service"
 echo "Updated the systemd service file."
+
+# Read keys from the local file and update the playbook
+playbook_file="$project_directory/ansible/$current_environment/playbook.yaml"
+echo $playbook_file
+while IFS= read -r line; do
+    key=$(echo "$line" | cut -d '=' -f 1)
+    value=$(echo "$line" | cut -d '=' -f 2-)
+    sed_command="sed -i \"s/^\([[:space:]]*\)$key=.*/\1$key=$value/\" \"$playbook_file\""
+    echo "Executing: $sed_command"
+    eval "$sed_command"
+done < <(yq e 'to_entries | .[] | "\(.key)=\(.value)"' "$keys_file")
+
+echo "Updated the Ansible playbook with the keys."
 
 # Run the Ansible playbook
 echo "Running Ansible.........."
