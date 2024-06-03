@@ -68,6 +68,20 @@ function update_aws_instance_id() {
     yq e ".backend.\"$current_project\".$current_env.aws.\"instance-id\" = \"$instance_id\"" -i "$properties_file"
 }
 
+# Function to execute the environment change script/command
+function execute_env_change_script() {
+    local new_env=$1
+    local current_project=$(get_active_project)
+    local script_path="$home_dir/src/$current_project/bin/savv-sh/becomes-current-environment"
+
+    if [ -f "$script_path" ]; then
+#        echo "Executing environment change script for $current_project with parameter $new_env"
+        bash "$script_path" "$new_env"
+    else
+        echo "WARN: Expected to find a file, becomes-current-environment, a bash script which would run for the current project when the environment changes; to copy files into place, etc.."
+    fi
+}
+
 # Get the environment from the command line argument
 if [ $# -lt 1 ]; then
 	echo "Please provide an environment option, project name, IP address, EC2 instance ID or 'show' command."
@@ -124,6 +138,10 @@ if [ "$param" = "show" ]; then
 	# Check if the provided value is an environment option
 elif [[ " ${allowed_envs[@]} " =~ " $param " ]]; then
 	update_current_environment "$param"
+
+	# Execute the environment change script with the new environment as parameter
+  execute_env_change_script "$param"
+
 	echo "Successfully updated the current environment to $param."
 
 	# Check if the provided value is a project name
