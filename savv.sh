@@ -70,7 +70,7 @@ function execute_env_change_script() {
 #        echo "Executing environment change script for $current_project with parameter $new_env"
         bash "$script_path" "$new_env"
     else
-        echo "WARN: Expected to find a file, becomes-current-environment, a bash script which would run for the current project when the environment changes; to copy files into place, etc.."
+        echo "WARN: Expected to find a file, $script_path, a bash script which would run for the current project when the environment changes; to copy files into place, etc.."
     fi
 }
 
