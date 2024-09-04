@@ -95,6 +95,8 @@ elif [ "$property_exists_backend" != "null" ]; then
 	    echo "Removing target directory..."
 	    rm -rf ./target
 	    echo "Target directory removed successfully."
+	    
+	    cp "./src/main/resources/application-$current_environment.properties" "./src/main/resources/application.properties" 
 
 	    # Run "mvn clean package"
 	    echo "Running 'mvn clean package'..."
