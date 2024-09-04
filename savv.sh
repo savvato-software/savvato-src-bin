@@ -25,14 +25,6 @@ function get_ip_address() {
 	echo "$ip_address"
 }
 
-# Get the list of backend projects that a frontend project depends on
-function get_api_dependencies() {
-	local current_project=$(get_active_project)
-	local yq_command="yq e '.frontend.\"$current_project\".api-dependencies[]' \"$properties_file\""
-	local dependencies=$(eval "$yq_command")
-	echo "$dependencies"
-}
-
 # Update the current environment in the properties file
 function update_current_environment() {
 	local env=$1

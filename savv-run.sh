@@ -1,9 +1,9 @@
 #!/bin/bash
 
-source ./savv-shared-functions.sh
-
 # Detect the home directory
 home_dir=$(eval echo "~")
+
+source $home_dir/src/bin/savv-shared-functions.sh
 
 # Define the path to the properties file
 properties_file="$home_dir/src/savvato.yaml"

@@ -36,3 +36,11 @@ function is_backend_project() {
 	echo "$is_backend_project"	
 }
 
+# Get the list of backend projects that a frontend project depends on
+function get_api_dependencies() {
+	local current_project=$(get_active_project)
+	local yq_command="yq e '.frontend.\"$current_project\".api-dependencies[]' \"$properties_file\""
+	local dependencies=$(eval "$yq_command")
+	echo "$dependencies"
+}
+
